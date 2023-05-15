@@ -1,7 +1,9 @@
 from django.db import models
+from django.db.models import DateTimeField
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.urls import reverse
+from taggit.managers import TaggableManager
 
 
 class Post(models.Model):
@@ -17,6 +19,7 @@ class Post(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
+    tags = TaggableManager()
 
     def get_absolute_url(self):
         return reverse('blog:post_detail',
@@ -25,8 +28,24 @@ class Post(models.Model):
                              self.publish.strftime('%d'),
                              self.slug])
 
-class Meta:
-    ordering = ('-publish',)
+    class Meta:
+        ordering = ('-publish',)
 
-def __str__(self):
-    return self.title
+    def __str__(self):
+        return self.title
+
+class Comment(models.Model):
+    post = models.ForeignKey(Post, related_name='comments', on_delete=models.CASCADE)
+    name = models.CharField(max_length=80)
+    email = models.EmailField()
+    body = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ('created',)
+
+    def __str__(self):
+        return 'Comment by {} on {}'.format(self.name, self.post)
+
