@@ -2,10 +2,12 @@ from django.shortcuts import render, get_object_or_404
 from .models import Post, Comment
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
-from .forms import EmailPostForm, CommentForm
+from .forms import EmailPostForm, CommentForm, SearchForm, BlogPostForm
 from django.core.mail import send_mail
 from taggit.models import Tag
 from django.db.models import Count
+from haystack.query import SearchQuerySet
+from django.contrib import messages
 
 
 class PostListView(ListView):
@@ -14,13 +16,15 @@ class PostListView(ListView):
     paginate_by = 2
     template_name = 'blog/post/list.html'
 
-#v2
 def post_list(request, tag_slug=None):
-    object_list = Post.objects.all()
+    #object_list = Post.objects.all()
+    object_list = Post.objects.filter(status='published').order_by('-created')
+
     tag = None
     if tag_slug:
         tag = get_object_or_404(Tag, slug=tag_slug)
         object_list = object_list.filter(tags__in=[tag])
+
     paginator = Paginator(object_list, 2)  # 2 posts in each page - Page 1 of 2
     page = request.GET.get('page')
     try:
@@ -31,16 +35,18 @@ def post_list(request, tag_slug=None):
     except EmptyPage:
         # If page is out of range deliver last page of results
         posts = paginator.page(paginator.num_pages)
+
     return render(request,
                   'blog/post/list.html',
                   {'page': page, 'posts': posts, 'tag': tag})
 
 def post_detail(request, year, month, day, post):
     post = get_object_or_404(Post, slug=post,
-                                   #status='published',
+                                   status='published',
                                    publish__year=year,
                                    publish__month=month,
                                    publish__day=day)
+
     # List of active comments for this post
     comments = post.comments.filter(active=True)
     if request.method == 'POST':
@@ -70,7 +76,7 @@ def post_detail(request, year, month, day, post):
 
 def post_share(request, post_id):
     # Retrieve post by id
-    post = get_object_or_404(Post, id=post_id, status='published')
+    post = get_object_or_404(Post, id=post_id) #, status='published')
     sent = False
     if request.method == 'POST':
         # Form was submitted
@@ -88,3 +94,34 @@ def post_share(request, post_id):
     return render(request, 'blog/post/share.html', {'post': post,
                                                     'form': form,
                                                     'sent': sent})
+
+def post_search(request):
+    form = SearchForm()
+    if 'query' in request.GET:
+        form = SearchForm(request.GET)
+        if form.is_valid():
+            cd = form.cleaned_data
+            results = SearchQuerySet().models(Post).filter(content=cd['query']).load_all()
+            # count total results
+            total_results = results.count()
+        return render(request, 'blog/post/search.html', {'form': form,
+                                                         'cd': cd,
+                                                         'results': results,
+                                                         'total_results': total_results})
+    return render(request, 'blog/post/search.html', {'form': form,})
+
+def post_create(request):
+    if request.method == "POST":
+        form = BlogPostForm(request.POST, request.FILES)
+        if form.is_valid():
+            form = form.save(commit=False)
+            form.creator = request.user
+            form.save()
+            messages.success(request, f'Hi, Your Post have been sent for review and would be live soon!')
+    else:
+        form = BlogPostForm()
+
+    context = {
+        "form": form
+    }
+    return render(request, 'blog/post/addpost.html', context)

@@ -28,8 +28,11 @@ class Post(models.Model):
                              self.publish.strftime('%d'),
                              self.slug])
 
+
     class Meta:
-        ordering = ('-publish',)
+        ordering = ('-publish',)  #default ordering
+        verbose_name = "Blog Post"
+        verbose_name_plural = "Blog Posts"
 
     def __str__(self):
         return self.title
@@ -48,4 +51,6 @@ class Comment(models.Model):
 
     def __str__(self):
         return 'Comment by {} on {}'.format(self.name, self.post)
+
+
 
