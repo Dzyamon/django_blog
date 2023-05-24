@@ -40,7 +40,7 @@ Comments -> models.py (class Comment) -> makemigrations + migrate -> admin.py (c
 -> forms.py (class CommentForm) -> views.py (comments) -> detail.html (comments)
 Tags -> add taggit to  settings.py (INSTALLED_APPS) -> models.py (TaggableManager()) -> makemigrations+migrate
 -> views.py (tag) -> urls.py (re_path tag) -> list.html (class="tags")
-Similar posts -> views.py (similar_posts) -> detail.html (<h2>Similar posts</h2>)
+Similar posts -> views.py (similar_posts) -> detail.html (Similar posts)
 blog/templatetags/ -> blog_tags.py -> base.html ({% load blog_tags %}) -- count posts, latest posts, most comment etc
 Sitemap -> settings.py ('django.contrib.sites', 'django.contrib.sitemaps') -> sitemaps.py -> urlpatterns mysite (sitemap)
 RSS feed -> feeds.py -> urls.py (urlpatterns for blog) -> base.html
