@@ -1,1 +1,1 @@
-# django_testpr2
+# django_blog_
