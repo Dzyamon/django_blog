@@ -1,4 +1,4 @@
-# django_testpr2
+# django_blog
 # based on https://pocoz.gitbooks.io/django-v-primerah/content/
 
 ***
