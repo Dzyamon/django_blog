@@ -17,8 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path, re_path
 from django.contrib.sitemaps.views import sitemap
+from blog import views
 from blog.sitemaps import PostSitemap
-from django.views.generic import TemplateView
+from django.contrib.staticfiles.storage import staticfiles_storage
+from django.views.generic.base import RedirectView
 
 
 sitemaps = {
@@ -27,6 +29,8 @@ sitemaps = {
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    re_path(r'^$', views.post_list, name='post_list'),
     re_path(r'^blog/', include(('blog.urls', 'blog'), namespace='blog')),
     re_path(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    re_path(r'favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon/favicon.ico'))),
 ]
